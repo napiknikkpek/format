@@ -23,6 +23,7 @@ BOOST_AUTO_TEST_CASE(digits) {
   BOOST_CHECK_EQUAL("0", format("{0}"_s, 0));
   BOOST_CHECK_EQUAL("0 1 2", format("{0} {1} {2}"_s, 0, 1, 2));
   BOOST_CHECK_EQUAL("2 1 0", format("{2} {1} {0}"_s, 0, 1, 2));
+  BOOST_CHECK_EQUAL("10", format("{10}"_s, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10));
 }
 
 BOOST_AUTO_TEST_CASE(various) {

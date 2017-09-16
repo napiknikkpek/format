@@ -103,18 +103,14 @@ std::string format(String str, Args const&... args) {
 
   constexpr auto N = format_impl::count(view);
 
-  if (N == 0) {
+  if constexpr (N == 0) {
     return str.c_str();
-  }
-
-  if constexpr (N > 0) {
+  } else {
     constexpr auto elements = format_impl::split<N>(view);
-
-    std::stringstream ss;
 
     auto tuple = make_tuple(args...);
 
-    static_assert(value(size(tuple)) <= N);
+    std::stringstream ss;
 
     ss << make_string_view(view.data(), elements.front().holder.data())
        << tuple[size_c<elements[0].index>];
@@ -129,7 +125,7 @@ std::string format(String str, Args const&... args) {
          << tuple[size_c<elements[index].index>];
     });
 
-    auto last = elements.back().holder;
+    auto const& last = elements.back().holder;
     ss << make_string_view(last.data() + last.size(), view.end());
 
     return ss.str();

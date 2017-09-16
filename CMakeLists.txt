@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.7)
 
 project(format LANGUAGES CXX)
 
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS On)
 
 find_package(Boost 1.63 REQUIRED)

@@ -5,15 +5,13 @@
 using namespace boost::hana::literals;
 
 int main() {
-<% 2.times do |k| %>
 
 #if defined(METABENCH)
   format(
-      "<%= '{}asdfsdfsadfasdfsadfasdfasdfasdfsadfsa' * n %>"_s, 
+      "<%= env[:templ] * n %>"_s, 
       <%= (1..n).to_a.join(',') %>
   );
 #endif
-<% end %>
 
   return 0;
 }
