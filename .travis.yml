@@ -1,0 +1,65 @@
+language: cpp
+os: linux
+dist: trusty
+sudo: false
+
+addons:
+  apt:
+    packages:
+      - cmake3
+    sources:
+      - sourceline: 'ppa:ubuntu-toolchain-r/test'
+
+matrix:
+  include:
+    - env: CXX=clang++-5.0
+      addons:
+        apt:
+          packages:
+            - clang-5.0
+          sources:
+            - sourceline: 'deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-5.0 main'
+              key_url: 'https://apt.llvm.org/llvm-snapshot.gpg.key'
+
+install:
+  - DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
+  - mkdir -p ${DEPS_DIR} 
+  - cd ${DEPS_DIR}
+
+  - LLVM_VERSION="5.0.0"
+  - LLVM_URL="http://llvm.org/releases/${LLVM_VERSION}/llvm-${LLVM_VERSION}.src.tar.xz"
+  - LIBCXX_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxx-${LLVM_VERSION}.src.tar.xz"
+  - LIBCXXABI_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxxabi-${LLVM_VERSION}.src.tar.xz"
+  - mkdir -p llvm llvm/build llvm/projects/libcxx llvm/projects/libcxxabi
+  - travis_retry wget -O - ${LLVM_URL} | tar --strip-components=1 -xJ -C llvm
+  - travis_retry wget -O - ${LIBCXX_URL} | tar --strip-components=1 -xJ -C llvm/projects/libcxx
+  - travis_retry wget -O - ${LIBCXXABI_URL} | tar --strip-components=1 -xJ -C llvm/projects/libcxxabi
+  - (cd llvm/build && cmake .. -DCMAKE_INSTALL_PREFIX=${DEPS_DIR}/llvm/install)
+  - (cd llvm/build/projects/libcxx && make install -j2)
+  - (cd llvm/build/projects/libcxxabi && make install -j2)
+
+  - export CXXFLAGS="-stdlib=libc++ -isystem ${DEPS_DIR}/llvm/install/include/c++/v1"
+  - export LDFLAGS="-L ${DEPS_DIR}/llvm/install/lib -l c++ -l c++abi"
+  - export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${DEPS_DIR}/llvm/install/lib"
+
+  - BOOST_VERSION=1.65.1
+  - BOOST_DIR=${DEPS_DIR}/boost-${BOOST_VERSION}
+  - BOOST_URL="http://sourceforge.net/projects/boost/files/boost/${BOOST_VERSION}/boost_${BOOST_VERSION//\./_}.tar.gz"
+  - mkdir -p ${BOOST_DIR}
+  - travis_retry wget -O - ${BOOST_URL} | tar --strip-components=1 -xz -C ${BOOST_DIR}
+
+  - METABENCH_DIR=${DEPS_DIR}/metabench
+  - git clone --depth=1 "https://github.com/ldionne/metabench.git" ${METABENCH_DIR}
+
+before_script:
+  - cd "${TRAVIS_BUILD_DIR}"
+  - mkdir build 
+  - cd build 
+  - cmake -DBOOST_ROOT="${BOOST_DIR}" -DCMAKE_MODULE_PATH="${METABENCH_DIR}" ..
+
+script:
+  - cd "${TRAVIS_BUILD_DIR}"
+  - cmake --build .
+  - bin/example
+  - cmake --build . --target format_test
+  - bin/format_test
