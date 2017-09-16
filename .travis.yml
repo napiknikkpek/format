@@ -12,7 +12,7 @@ addons:
 
 matrix:
   include:
-    - env: CXX=clang++-5.0
+    - env: COMPILER=clang++-5.0
       addons:
         apt:
           packages:
@@ -22,10 +22,18 @@ matrix:
               key_url: 'https://apt.llvm.org/llvm-snapshot.gpg.key'
 
 install:
+  - export CXX=${COMPILER}
+
   - DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
   - mkdir -p ${DEPS_DIR} 
   - cd ${DEPS_DIR}
 
+  - CMAKE_VERSION=3.8.0
+  - CMAKE_URL="https://cmake.org/files/v${CMAKE_VERSION%.[0-9]}/cmake-${CMAKE_VERSION}-Linux-x86_64.tar.gz"
+  - mkdir cmake 
+  - travis_retry wget --no-check-certificate -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake
+  - export PATH=${DEPS_DIR}/cmake/bin:${PATH}
+  
   - LLVM_VERSION="5.0.0"
   - LLVM_URL="http://llvm.org/releases/${LLVM_VERSION}/llvm-${LLVM_VERSION}.src.tar.xz"
   - LIBCXX_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxx-${LLVM_VERSION}.src.tar.xz"
