@@ -3,13 +3,6 @@ os: linux
 dist: trusty
 sudo: false
 
-addons:
-  apt:
-    packages:
-      - cmake3
-    sources:
-      - sourceline: 'ppa:ubuntu-toolchain-r/test'
-
 matrix:
   include:
     - env: COMPILER=clang++-5.0
