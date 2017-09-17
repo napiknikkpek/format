@@ -2,7 +2,8 @@
 
 Simple constexpr format function.
 
-1. Using constexpr metaprogramming instead of template metaprogramming make compilation time much smaller.
+1. Using constexpr metaprogramming instead of template metaprogramming make compilation time much smaller
+<a href="" target="_blank"><img src="https://raw.githubusercontent.com/napiknikkpek/format/master/bench.png" width="100%" height="200" border="10" /></a>
 1. It uses python's replacement fields with optional argument index - `{d*}`.
 
 Usage:
