@@ -1,15 +1,11 @@
-#include <boost/hana/string.hpp>
-
 #include "format.hpp"
-
-using namespace boost::hana::literals;
 
 int main() {
 
 #if defined(METABENCH)
   format(
-      "<%= env[:templ] * n %>"_s, 
-      <%= (1..n).to_a.join(',') %>
+      CONSTEXPR_STRING("<%= env[:templ] * n %>"), 
+      0
   );
 #endif
 

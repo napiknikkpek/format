@@ -7,7 +7,10 @@
 
 using namespace boost::hana::literals;
 
-BOOST_AUTO_TEST_CASE(empty) { BOOST_CHECK_EQUAL("", format(""_s)); }
+BOOST_AUTO_TEST_CASE(empty) {
+  BOOST_CHECK_EQUAL("", format(""_s));
+  BOOST_CHECK_EQUAL("asdf", format("asdf"_s));
+}
 
 BOOST_AUTO_TEST_CASE(boundary) {
   BOOST_CHECK_EQUAL(" 1", format(" {}"_s, 1));
@@ -15,11 +18,20 @@ BOOST_AUTO_TEST_CASE(boundary) {
   BOOST_CHECK_EQUAL("1", format("{}"_s, 1));
 }
 
-BOOST_AUTO_TEST_CASE(non_digits) {
+BOOST_AUTO_TEST_CASE(escaped) {
+  BOOST_CHECK_EQUAL("{", format("{{"_s, 0));
+  BOOST_CHECK_EQUAL("}", format("}}"_s, 0));
+  BOOST_CHECK_EQUAL("{}", format("{{}}"_s, 0));
+  BOOST_CHECK_EQUAL("{0}", format("{{{}}}"_s, 0));
+  BOOST_CHECK_EQUAL("{{0", format("{{{{{}"_s, 0));
+  BOOST_CHECK_EQUAL("0}}", format("{}}}}}"_s, 0));
+}
+
+BOOST_AUTO_TEST_CASE(empty_spec) {
   BOOST_CHECK_EQUAL("0 1 2", format("{} {} {}"_s, 0, 1, 2));
 }
 
-BOOST_AUTO_TEST_CASE(digits) {
+BOOST_AUTO_TEST_CASE(numeric_spec) {
   BOOST_CHECK_EQUAL("0", format("{0}"_s, 0));
   BOOST_CHECK_EQUAL("0 1 2", format("{0} {1} {2}"_s, 0, 1, 2));
   BOOST_CHECK_EQUAL("2 1 0", format("{2} {1} {0}"_s, 0, 1, 2));
