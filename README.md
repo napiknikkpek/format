@@ -8,11 +8,8 @@ Simple constexpr format function.
 Usage:
 ```cpp
 #include <format.hpp>
-#include <boost/hana/string.hpp>
 
-using namespace boost::hana::literals;
-
-std::cout << format("string: {1}, number: {0}"_s, 1, "asdf");
+std::cout << FORMAT("string: {1}, number: {0}")(1, "asdf");
 ```
 
 
