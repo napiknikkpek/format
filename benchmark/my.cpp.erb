@@ -3,10 +3,7 @@
 int main() {
 
 #if defined(METABENCH)
-  format(
-      CONSTEXPR_STRING("<%= env[:templ] * n %>"), 
-      0
-  );
+  FORMAT("<%= env[:templ] * n %>")(0);
 #endif
 
   return 0;

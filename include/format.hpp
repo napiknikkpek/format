@@ -179,14 +179,6 @@ constexpr T accumulate(Iterator b, Iterator e, T init, Op op) {
 
 }  // namespace format_impl
 
-#define CONSTEXPR_STRING(s)                                 \
-  ([] {                                                     \
-    struct tmp {                                            \
-      static constexpr decltype(auto) c_str() { return s; } \
-    };                                                      \
-    return tmp{};                                           \
-  }())
-
 template <typename String, typename... Args>
 std::string format(String str, Args const&... args) {
   using namespace format_impl;
@@ -244,5 +236,18 @@ std::string format(String str, Args const&... args) {
     return ss.str();
   }
 }
+
+#define CONSTEXPR_STRING(s)                                 \
+  ([] {                                                     \
+    struct tmp {                                            \
+      static constexpr decltype(auto) c_str() { return s; } \
+    };                                                      \
+    return tmp{};                                           \
+  }())
+
+#define FORMAT(s)                                                              \
+  [](auto&&... args) {                                                         \
+    return format(CONSTEXPR_STRING(s), std::forward<decltype(args)>(args)...); \
+  }
 
 #endif
