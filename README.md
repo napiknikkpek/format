@@ -2,7 +2,7 @@
 
 Simple constexpr format function.
 
-1. Using constexpr metaprogramming instead of template metaprogramming make compilation time much smaller
+1. Using constexpr functions instead of recursive templates make compilation time much smaller
 1. It uses python's replacement fields with optional argument index - `{\d*}`.
 
 Usage:
