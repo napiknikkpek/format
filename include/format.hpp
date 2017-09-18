@@ -245,9 +245,10 @@ std::string format(String str, Args const&... args) {
     return tmp{};                                           \
   }())
 
-#define FORMAT(s)                                                              \
-  [](auto&&... args) {                                                         \
-    return format(CONSTEXPR_STRING(s), std::forward<decltype(args)>(args)...); \
+#define FORMAT(s)                                           \
+  [](auto&&... args) {                                      \
+    return format(CONSTEXPR_STRING(s),                      \
+                  std::forward<decltype(args)&&>(args)...); \
   }
 
 #endif
