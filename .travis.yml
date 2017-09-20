@@ -56,7 +56,7 @@ install:
   - BENCHMARK_DIR=${DEPS_DIR}/benchmark
   - BENCHMARK_URL="https://github.com/google/benchmark/archive/v1.2.0.tar.gz"
   - travis_retry wget -O - ${BENCHMARK_URL} | tar --strip-components=1 -xz -C ${BENCHMARK_DIR}
-  - (cd benchmark/build && cmake .. -DCMAKE_BUILD_TYPE=Release -DBENCHMARK_USE_LIBCXX=On -DCMAKE_INSTALL_PREFIX=${BENCHMARK_DIR}/install)
+  - (cd benchmark/build && cmake .. -DCMAKE_BUILD_TYPE=Release -DBENCHMARK_USE_LIBCXX=On -DBENCHMARK_ENABLE_TESTING=Off -DCMAKE_INSTALL_PREFIX=${BENCHMARK_DIR}/install)
   - (cd benchmark/build && make install -j2)
 
 before_script:
