@@ -52,15 +52,22 @@ install:
   - METABENCH_DIR=${DEPS_DIR}/metabench
   - git clone --depth=1 "https://github.com/ldionne/metabench.git" ${METABENCH_DIR}
 
+  - BENCHMARK_DIR=${DEPS_DIR}/benchmark
+  - BENCHMARK_URL="https://github.com/google/benchmark/archive/v1.2.0.tar.gz"
+  - travis_retry wget -O - ${BENCHMARK_URL} | tar --strip-components=1 -xz -C ${BENCHMARK_DIR}
+  - mkdir -p benchmark/build
+  - (cd benchmark/build && cmake .. -DCMAKE_BUILD_TYPE=Release -DBENCHMARK_USE_LIBCXX=On -DCMAKE_INSTALL_PREFIX=${BENCHMARK_DIR}/install)
+
 before_script:
   - cd "${TRAVIS_BUILD_DIR}"
   - mkdir build 
   - cd build 
-  - cmake -DBOOST_ROOT="${BOOST_DIR}" -DCMAKE_MODULE_PATH="${METABENCH_DIR}" ..
+  - cmake -DCMAKE_BUILD_TYPE=Release -DBOOST_ROOT="${BOOST_DIR}" -DCMAKE_MODULE_PATH="${METABENCH_DIR};${BENCHMARK_DIR}/install/lib/cmake/benchmark" ..
 
 script:
   - cd "${TRAVIS_BUILD_DIR}"/build
   - cmake --build .
   - bin/example
+  - bin/runtime
   - cmake --build . --target format_test
   - bin/format_test
