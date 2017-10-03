@@ -148,7 +148,7 @@ std::string format(String str, Args&&... args) {
   std::array<std::string, Size> fields;
 
   {
-    auto tuple = make_tuple(std::forward<Args&&>(args)...);
+    auto tuple = make_tuple(std::forward<Args>(args)...);
     auto indices = make_range(size_c<0>, size_c<Size>);
     std::stringstream ss;
     for_each(indices, [&](auto x) {
@@ -216,10 +216,9 @@ std::string format(String str, Args&&... args) {
     return tmp{};                                           \
   }())
 
-#define FORMAT(s)                                           \
-  [](auto&&... args) {                                      \
-    return format(CONSTEXPR_STRING(s),                      \
-                  std::forward<decltype(args)&&>(args)...); \
+#define FORMAT(s)                                                              \
+  [](auto&&... args) {                                                         \
+    return format(CONSTEXPR_STRING(s), std::forward<decltype(args)>(args)...); \
   }
 
 #endif
