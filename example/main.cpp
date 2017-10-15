@@ -1,9 +1,12 @@
 #include <iostream>
 
-#include "format.hpp"
+#include <boost/hana/string.hpp>
+#include <format.hpp>
 
 int main() {
-  std::cout << FORMAT("string: {}, number: {}")("asdf", 100) << std::endl;
-  std::cout << FORMAT("string: {1}, number: {0}")(100, "asdf") << std::endl;
+  using namespace boost::hana::literals;
+
+  std::cout << format("string: {}, number: {}"_s, "asdf", 100) << std::endl;
+  std::cout << format("string: {1}, number: {0}"_s, 100, "asdf") << std::endl;
   return 0;
 }

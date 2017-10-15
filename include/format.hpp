@@ -22,7 +22,7 @@ struct error : public std::runtime_error {
 
 constexpr int to_int(char c) {
   if (c >= '0' && c <= '9') {
-    return int{c} - int{'0'};
+    return c - '0';
   }
   throw error("not a number");
 }
