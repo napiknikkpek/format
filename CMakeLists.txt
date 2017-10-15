@@ -1,28 +1,19 @@
-cmake_minimum_required(VERSION 3.5)
-
-project(format LANGUAGES CXX)
+cmake_minimum_required(VERSION 3.8)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 
-set(CMAKE_EXPORT_COMPILE_COMMANDS On)
-
 find_package(Boost 1.63 REQUIRED)
 
-add_compile_options(-std=c++1z)
-add_compile_options(-Wno-gnu-string-literal-operator-template)
-
-add_definitions(-DBOOST_HANA_CONFIG_ENABLE_STRING_UDL)
-# boost use removed features
-add_definitions(-D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES)
-
-include_directories(${Boost_INCLUDE_DIRS})
-
 add_library(format INTERFACE)
-target_include_directories(format INTERFACE include)
 
-include_directories(${format_SOURCE_DIR}/include)
+target_include_directories(format
+  INTERFACE include)
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+target_link_libraries(format
+  INTERFACE Boost::boost)
+
+target_compile_features(format
+  INTERFACE cxx_std_17)
 
 add_subdirectory(example)
 add_subdirectory(benchmark)

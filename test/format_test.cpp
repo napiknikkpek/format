@@ -1,7 +1,7 @@
 #define BOOST_TEST_MODULE format
 #include <boost/test/included/unit_test.hpp>
 
-#include "format.hpp"
+#include <format.hpp>
 
 BOOST_AUTO_TEST_CASE(empty) {
   BOOST_CHECK_EQUAL("", FORMAT("")());
