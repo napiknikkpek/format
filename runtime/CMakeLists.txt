@@ -1,6 +1,6 @@
 find_package(benchmark)
 
-if(NOT benchmark-FOUND)
+if(NOT benchmark_FOUND)
   return()
 endif()
 

@@ -21,8 +21,6 @@ install:
   - mkdir -p ${DEPS_DIR} 
   - cd ${DEPS_DIR}
 
-  - echo $PATH
-
   - CMAKE_VERSION=3.8.2
   - CMAKE_URL="https://cmake.org/files/v${CMAKE_VERSION%.[0-9]}/cmake-${CMAKE_VERSION}-Linux-x86_64.tar.gz"
   - mkdir cmake 
