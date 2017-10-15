@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
 
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
-
 find_package(Boost 1.63 REQUIRED)
 
 add_library(format INTERFACE)
