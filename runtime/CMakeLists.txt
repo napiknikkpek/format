@@ -1,4 +1,8 @@
-include(benchmarkConfig)
+find_package(benchmark)
+
+if(NOT benchmark-FOUND)
+  return()
+endif()
 
 add_executable(runtime runtime.cpp)
 
