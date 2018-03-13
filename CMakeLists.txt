@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.8)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS On)
+
 find_package(Boost 1.63 REQUIRED)
 
 add_library(format INTERFACE)
