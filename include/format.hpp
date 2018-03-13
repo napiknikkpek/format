@@ -97,7 +97,8 @@ std::string format(String str, Args&&... args) {
       [](std::size_t start, std::size_t size, int index, Test& t) {
         if (index < 0) index = t.no++;
 
-        if (index >= Size) throw "replacement index out of range";
+        if (index >= Size)
+          throw "compile time error: replacement index out of range";
 
         ++t.counts[index];
       });
