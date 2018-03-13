@@ -16,11 +16,11 @@ BOOST_AUTO_TEST_CASE(boundary) {
 
 BOOST_AUTO_TEST_CASE(escaped) {
   BOOST_CHECK_EQUAL("{", FORMAT("{{")(0));
-  BOOST_CHECK_EQUAL("}", FORMAT("}}")(0));
-  BOOST_CHECK_EQUAL("{}", FORMAT("{{}}")(0));
-  BOOST_CHECK_EQUAL("{0}", FORMAT("{{{}}}")(0));
+  BOOST_CHECK_EQUAL("}}", FORMAT("}}")(0));
+  BOOST_CHECK_EQUAL("{}}", FORMAT("{{}}")(0));
+  BOOST_CHECK_EQUAL("{0}}", FORMAT("{{{}}}")(0));
   BOOST_CHECK_EQUAL("{{0", FORMAT("{{{{{}")(0));
-  BOOST_CHECK_EQUAL("0}}", FORMAT("{}}}}}")(0));
+  BOOST_CHECK_EQUAL("0}}}}", FORMAT("{}}}}}")(0));
 }
 
 BOOST_AUTO_TEST_CASE(empty_spec) {

@@ -1,7 +1,7 @@
 include(metabench)
 
 metabench_add_dataset(my_dataset
-  "my.cpp.erb" "(1...10001).step(1000)"
+  "my.cpp.erb" "(0...10001).step(1000)"
   ENV "{templ: '{0}asdfsdfsadfasdfsadfasdfasdfasdfsadfsa'}"
 )
 

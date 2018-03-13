@@ -1,153 +1,82 @@
-#ifndef _0039D484_AE0F_4DF2_8C7B_3FAFB9E0094E_HPP
-#define _0039D484_AE0F_4DF2_8C7B_3FAFB9E0094E_HPP
+#ifndef _36BF5C5E_B38C_4308_AE68_1ECDCB17734B_HPP
+#define _36BF5C5E_B38C_4308_AE68_1ECDCB17734B_HPP
 
 #include <array>
 #include <sstream>
-#include <stdexcept>
 #include <string>
 #include <string_view>
+#include <tuple>
 
 #include <boost/hana/for_each.hpp>
 #include <boost/hana/range.hpp>
 #include <boost/hana/tuple.hpp>
 #include <boost/hana/value.hpp>
+
 #include <boost/iostreams/device/array.hpp>
 #include <boost/iostreams/stream_buffer.hpp>
 
-namespace format_impl {
+namespace format_detail {
 
-struct error : public std::runtime_error {
-  error(std::string const& msg) : std::runtime_error(msg) {}
-};
-
-constexpr int to_int(char c) {
-  if (c >= '0' && c <= '9') {
-    return c - '0';
-  }
-  throw error("not a number");
+constexpr int atoi(char c) {
+  if (c >= '0' && c <= '9') return c - '0';
+  throw "compile time error: not a digit";
 }
 
-template <typename Iterator>
-constexpr int to_int(Iterator b, Iterator e) {
-  int result = 0;
-  for (; b != e; ++b) {
-    result *= 10;
-    result += to_int(*b);
+constexpr std::size_t stoi(std::string_view str) {
+  std::size_t x = 0;
+  for (auto c : str) {
+    x *= 10;
+    x += atoi(c);
+  }
+  return x;
+}
+
+template <typename Result, typename Escaped, typename Replacement>
+constexpr Result parse(std::string_view const& view, Escaped escaped,
+                       Replacement replacement) {
+  Result result{};
+  for (auto x = view.find_first_of('{'); x != std::string_view::npos;
+       x = view.find_first_of('{', x)) {
+    if (x == (view.size() - 1))
+      throw "compile time error: non closed replacement";
+
+    if (view[x + 1] == '{') {
+      escaped(x, result);
+      x += 2;
+      continue;
+    }
+
+    auto start = x;
+    x = view.find_first_of('}', x);
+    if (x == std::string_view::npos)
+      throw "compile time error: non closed replacement";
+
+    ++x;
+
+    auto repl = view.substr(start + 1, x - start - 2);
+    int index = repl.empty() ? -1 : stoi(repl);
+    replacement(start, x - start, index, result);
   }
   return result;
 }
 
-using std::string_view;
-
-struct parser {
-  string_view const& view;
-
-  constexpr bool escaped(string_view::size_type& pos) const {
-    if (pos >= view.size() || view[pos + 1] != view[pos]) {
-      return false;
-    }
-    pos += 2;
-    return true;
-  }
-
-  constexpr bool indexed(string_view::size_type& pos, int& index) const {
-    if (pos >= view.size()) {
-      return false;
-    }
-    if (view[pos + 1] == '}') {
-      index = -1;
-      pos += 2;
-      return true;
-    }
-    auto b = pos;
-    auto e = view.find('}', b);
-    if (e == string_view::npos) {
-      return false;
-    }
-    index = to_int(view.begin() + b + 1, view.begin() + e);
-    pos = e + 1;
-    return true;
-  }
-
-  constexpr auto step(string_view::size_type pos) const {
-    return view.find_first_of(string_view{"{}"}, pos);
-  }
-
-  // spirit grammar :
-  // *(*(!char_("{}")) >> ("{{" | ('{' > *int_ > '}') | "}}" | eps[error()]))
-  template <typename Visitor>
-  constexpr Visitor parse() const {
-    Visitor visitor{};
-
-    for (auto pos = step(0); pos != string_view::npos; pos = step(pos)) {
-      auto b = pos;
-      if (view[pos] == '}') {
-        if (escaped(pos)) {
-          visitor.escape(string_view{view.data() + b, pos - b}, '}');
-          continue;
-        }
-        throw error{"unmatched '}'"};
-      }
-
-      if (escaped(pos)) {
-        visitor.escape(string_view{view.data() + b, pos - b}, '{');
-        continue;
-      }
-
-      int index = -1;
-      if (indexed(pos, index)) {
-        visitor.field(string_view{view.data() + b, pos - b}, index);
-        continue;
-      }
-      throw error("unmatched '{'");
-    }
-
-    return visitor;
-  }
-};
-
 template <int Size>
-struct count_visitor {
-  int total = 0;
-  int indices = 0;
-  int up = -1;
-  std::array<int, Size> fields;
-
-  constexpr count_visitor() : fields{} {}
-
-  constexpr void escape(string_view const& view, char) { ++total; }
-  constexpr void field(string_view const& view, int index) {
-    if (index < 0) {
-      index = indices;
-    }
-
-    up = std::max(index, up);
-
-    if (index < Size) {
-      ++fields[index];
-    }
-
-    ++indices;
-    ++total;
-  }
+struct Test {
+  constexpr Test() = default;
+  std::array<int, Size> counts;
+  int no = 0;
 };
 
-std::string_view make_string_view(char const* b, char const* e) {
-  return std::string_view{b, static_cast<std::string_view::size_type>(e - b)};
-}
-
-}  // namespace format_impl
+}  // namespace format_detail
 
 template <typename String, typename... Args>
 std::string format(String str, Args&&... args) {
-  using namespace format_impl;
-  using namespace boost::hana;
-  using std::string_view;
-
   constexpr auto Size = sizeof...(args);
   std::array<std::string, Size> fields;
 
   {
+    using namespace boost::hana;
+
     auto tuple = make_tuple(std::forward<Args>(args)...);
     auto indices = make_range(size_c<0>, size_c<Size>);
     std::stringstream ss;
@@ -159,53 +88,52 @@ std::string format(String str, Args&&... args) {
     });
   }
 
-  constexpr auto view = string_view(str.c_str());
-  constexpr auto counter = parser{view}.parse<count_visitor<Size>>();
+  constexpr std::string_view view(str.c_str());
 
-  if constexpr (counter.total == 0) {
-    return str.c_str();
-  } else {
-    static_assert(counter.up < static_cast<int>(Size),
-                  "replacement index out of range");
+  using Test = format_detail::Test<Size>;
 
-    auto buffer_size = view.size();
-    for (auto i = 0u; i < fields.size(); ++i) {
-      buffer_size += counter.fields[i] * fields[i].size();
-    }
+  constexpr auto test = format_detail::parse<Test>(
+      view, [](std::size_t, Test&) {},
+      [](std::size_t start, std::size_t size, int index, Test& t) {
+        if (index < 0) index = t.no++;
 
-    using boost::iostreams::basic_array;
-    using boost::iostreams::stream_buffer;
+        if (index >= Size) throw "replacement index out of range";
 
-    std::string result(buffer_size, 0);
-    stream_buffer<basic_array<char>> buffer(result.data(), result.size());
-    std::ostream stream(&buffer);
+        ++t.counts[index];
+      });
 
-    auto parser = format_impl::parser{view};
-    auto count = 0;
-    auto prev = 0;
-    for (auto pos = parser.step(0); pos != string_view::npos;
-         pos = parser.step(pos)) {
-      stream << make_string_view(view.data() + prev, view.data() + pos);
-      auto b = pos;
-      if (parser.escaped(pos)) {
-        stream << view[b];
-      } else {
-        int index;
-        parser.indexed(pos, index);
-        if (index < 0) {
-          index = count;
-        }
-        ++count;
-        stream << fields[index];
-      }
-      prev = pos;
-    }
+  auto buffer_size = view.size();
 
-    stream << make_string_view(view.data() + prev, view.data() + view.size());
-
-    result.resize(stream.tellp());
-    return result;
+  for (auto i = 0u; i < test.counts.size(); ++i) {
+    buffer_size += test.counts[i] * fields[i].size();
   }
+
+  using boost::iostreams::basic_array;
+  using boost::iostreams::stream_buffer;
+
+  std::string result(buffer_size, 0);
+  stream_buffer<basic_array<char>> buffer(result.data(), result.size());
+  std::ostream stream(&buffer);
+
+  std::size_t pos = 0;
+  int no = 0;
+  format_detail::parse<int>(
+      view,
+      [&](std::size_t start, int&) {
+        stream << view.substr(pos, start - pos + 1);
+        pos = start + 2;
+      },
+      [&](std::size_t start, std::size_t size, int index, int&) {
+        if (index < 0) index = no++;
+        stream << view.substr(pos, start - pos);
+        stream << fields[index];
+        pos = start + size;
+      });
+
+  stream << view.substr(pos);
+
+  result.resize(stream.tellp());
+  return result;
 }
 
 #define CONSTEXPR_STRING(s)                                 \
@@ -216,6 +144,7 @@ std::string format(String str, Args&&... args) {
     return tmp{};                                           \
   }())
 
+// ultra compile time fast format version
 #define FORMAT(s)                                                              \
   [](auto&&... args) {                                                         \
     return format(CONSTEXPR_STRING(s), std::forward<decltype(args)>(args)...); \
