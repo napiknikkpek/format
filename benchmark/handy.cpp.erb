@@ -1,0 +1,13 @@
+#include "format.hpp"
+
+#include <boost/hana/string.hpp>
+
+int main() {
+  using namespace boost::hana::literals;
+
+#if defined(METABENCH)
+  format("<%= env[:templ] * (n + 1) %>"_s, 0);
+#endif
+
+  return 0;
+}

@@ -1,14 +1,26 @@
 include(metabench)
 
-metabench_add_dataset(my_dataset
-  "my.cpp.erb" "(0...10001).step(1000)"
+metabench_add_dataset(fast
+  "fast.cpp.erb" "(0...10001).step(1000)"
   ENV "{templ: '{0}asdfsdfsadfasdfsadfasdfasdfasdfsadfsa'}"
 )
 
-metabench_add_chart(format_chart DATASETS my_dataset)
+metabench_add_dataset(handy
+  "handy.cpp.erb" "(0...10001).step(1000)"
+  ENV "{templ: '{0}asdfsdfsadfasdfsadfasdfasdfasdfsadfsa'}"
+)
 
-target_compile_options(my_dataset
+metabench_add_chart(format_chart DATASETS fast handy)
+
+target_compile_options(fast
   PRIVATE -fconstexpr-steps=999999999)
-
-target_link_libraries(my_dataset
+target_link_libraries(fast
   PRIVATE format Boost::boost)
+
+target_compile_options(handy PRIVATE 
+  -fconstexpr-steps=999999999
+  -Wno-gnu-string-literal-operator-template
+  -DBOOST_HANA_CONFIG_ENABLE_STRING_UDL)
+target_link_libraries(handy
+  PRIVATE format Boost::boost)
+
