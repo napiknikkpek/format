@@ -6,11 +6,7 @@
 #include <string>
 #include <string_view>
 #include <tuple>
-
-#include <boost/hana/for_each.hpp>
-#include <boost/hana/range.hpp>
-#include <boost/hana/tuple.hpp>
-#include <boost/hana/value.hpp>
+#include <utility>
 
 #include <boost/iostreams/device/array.hpp>
 #include <boost/iostreams/stream_buffer.hpp>
@@ -75,17 +71,9 @@ std::string format(String str, Args&&... args) {
   std::array<std::string, Size> fields;
 
   {
-    using namespace boost::hana;
-
-    auto tuple = make_tuple(std::forward<Args>(args)...);
-    auto indices = make_range(size_c<0>, size_c<Size>);
     std::stringstream ss;
-    for_each(indices, [&](auto x) {
-      constexpr auto index = value(x);
-      ss.str(std::string{});
-      ss << tuple[x];
-      fields[index] = ss.str();
-    });
+    int i = 0;
+    ((ss.str(std::string{}), ss << args, fields[i++] = ss.str()), ...);
   }
 
   constexpr std::string_view view(str.c_str());

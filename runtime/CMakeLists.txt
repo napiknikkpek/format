@@ -7,4 +7,4 @@ endif()
 add_executable(runtime runtime.cpp)
 
 target_link_libraries(runtime 
-  PRIVATE format benchmark::benchmark)
+  PRIVATE format Boost::boost benchmark::benchmark)

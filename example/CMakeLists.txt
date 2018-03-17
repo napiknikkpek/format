@@ -8,4 +8,4 @@ target_compile_options(example
     -DBOOST_HANA_CONFIG_ENABLE_STRING_UDL)
 
 target_link_libraries(example
-  PRIVATE format)
+  PRIVATE format Boost::boost)

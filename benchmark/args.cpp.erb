@@ -1,0 +1,10 @@
+#include "format.hpp"
+
+int main() {
+
+#if defined(METABENCH)
+  FORMAT("<%= env[:templ] * (n + 1) %>")(<%= "0" + ",0" * n %>);
+#endif
+
+  return 0;
+}
