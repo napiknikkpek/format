@@ -5,8 +5,6 @@
 #include <sstream>
 #include <string>
 #include <string_view>
-#include <tuple>
-#include <utility>
 
 #include <boost/iostreams/device/array.hpp>
 #include <boost/iostreams/stream_buffer.hpp>
