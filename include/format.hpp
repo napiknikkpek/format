@@ -54,11 +54,14 @@ constexpr Result parse(std::string_view const& view, Escaped escaped,
   return result;
 }
 
+enum class Numbering { None, Manual, Automatic };
+
 template <int Size>
 struct Test {
   constexpr Test() = default;
   std::array<int, Size> counts;
   int no = 0;
+  Numbering numbering = Numbering::None;
 };
 
 }  // namespace format_detail
@@ -81,6 +84,15 @@ std::string format(String str, Args&&... args) {
   constexpr auto test = format_detail::parse<Test>(
       view, [](std::size_t, Test&) {},
       [](std::size_t start, std::size_t size, int index, Test& t) {
+        using format_detail::Numbering;
+
+        auto numbering = index < 0 ? Numbering::Automatic : Numbering::Manual;
+
+        if (t.numbering == Numbering::None)
+          t.numbering = numbering;
+        else if (t.numbering != numbering)
+          throw "compile time error: cannot switch field numbering type";
+
         if (index < 0) index = t.no++;
 
         if (index >= Size)

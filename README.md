@@ -1,15 +1,21 @@
 # Format <a target="_blank" href="https://travis-ci.org/napiknikkpek/format">![Travis status][badge.Travis]</a>
 
 Simple c++17 compile time formatting implemented with constexpr.
-
-1. Using constexpr functions instead of recursive templates make compilation time much smaller
-1. It uses python's replacement fields with optional argument index - `{\d*}`.
+Use python format syntax.
 
 Usage:
 ```cpp
 #include <format.hpp>
+#include <boost/hana/string.hpp>
+
+using namespace boost::hana::literals;
 
 std::cout << format("string: {1}, number: {0}"_s, 1, "asdf");
+```
+```cpp
+#include <format.hpp>
+
+std::cout << FORMAT("string: {1}, number: {0}")(1, "asdf");
 ```
 
 
