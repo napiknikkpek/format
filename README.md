@@ -1,6 +1,7 @@
 # Format <a target="_blank" href="https://travis-ci.org/napiknikkpek/format">![Travis status][badge.Travis]</a>
 
 Simple c++17 compile time formatting implemented with constexpr.
+
 Use python format syntax.
 
 Usage:
