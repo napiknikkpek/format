@@ -2,12 +2,12 @@
 #define _36BF5C5E_B38C_4308_AE68_1ECDCB17734B_HPP
 
 #include <array>
+#include <functional>
+#include <ostream>
 #include <sstream>
 #include <string>
 #include <string_view>
-
-#include <boost/iostreams/device/array.hpp>
-#include <boost/iostreams/stream_buffer.hpp>
+#include <tuple>
 
 namespace format_detail {
 
@@ -56,83 +56,80 @@ constexpr Result parse(std::string_view const& view, Escaped escaped,
 
 enum class Numbering { None, Manual, Automatic };
 
-template <int Size>
-struct Test {
-  constexpr Test() = default;
-  std::array<int, Size> counts;
-  int no = 0;
-  Numbering numbering = Numbering::None;
+template <typename String, typename... Args>
+struct wrap {
+  std::tuple<Args...> args;
+
+  std::string str() {
+    std::stringstream ss;
+    ss << *this;
+    return ss.str();
+  }
 };
 
-}  // namespace format_detail
+struct Test {
+  constexpr Test() = default;
+  Numbering numbering = Numbering::None;
+  int no = 0;
+};
 
 template <typename String, typename... Args>
-std::string format(String str, Args&&... args) {
+std::ostream& shift(std::ostream& os, Args... args) {
   constexpr auto Size = sizeof...(args);
-  std::array<std::string, Size> fields;
 
-  {
-    std::stringstream ss;
-    int i = 0;
-    ((ss.str(std::string{}), ss << args, fields[i++] = ss.str()), ...);
-  }
+  std::array<std::function<void(std::ostream&)>, Size> fields = {
+      ([&](std::ostream& o) { o << args; })...};
 
-  constexpr std::string_view view(str.c_str());
-
-  using Test = format_detail::Test<Size>;
+  constexpr std::string_view view(String{}.c_str());
 
   constexpr auto test = format_detail::parse<Test>(
       view, [](std::size_t, Test&) {},
-      [](std::size_t start, std::size_t size, int index, Test& t) {
-        using format_detail::Numbering;
-
+      [](std::size_t start, std::size_t size, int index, Test& test) {
         auto numbering = index < 0 ? Numbering::Automatic : Numbering::Manual;
 
-        if (t.numbering == Numbering::None)
-          t.numbering = numbering;
-        else if (t.numbering != numbering)
+        if (test.numbering == Numbering::None)
+          test.numbering = numbering;
+        else if (test.numbering != numbering)
           throw "compile time error: cannot switch field numbering type";
 
-        if (index < 0) index = t.no++;
+        if (index < 0) index = test.no++;
 
         if (index >= Size)
           throw "compile time error: replacement index out of range";
-
-        ++t.counts[index];
       });
-
-  auto buffer_size = view.size();
-
-  for (auto i = 0u; i < test.counts.size(); ++i) {
-    buffer_size += test.counts[i] * fields[i].size();
-  }
-
-  using boost::iostreams::basic_array;
-  using boost::iostreams::stream_buffer;
-
-  std::string result(buffer_size, 0);
-  stream_buffer<basic_array<char>> buffer(result.data(), result.size());
-  std::ostream stream(&buffer);
 
   std::size_t pos = 0;
   int no = 0;
   format_detail::parse<int>(
       view,
       [&](std::size_t start, int&) {
-        stream << view.substr(pos, start - pos + 1);
+        os << view.substr(pos, start - pos + 1);
         pos = start + 2;
       },
       [&](std::size_t start, std::size_t size, int index, int&) {
         if (index < 0) index = no++;
-        stream << view.substr(pos, start - pos);
-        stream << fields[index];
+        os << view.substr(pos, start - pos);
+        fields[index](os);
         pos = start + size;
       });
 
-  stream << view.substr(pos);
+  os << view.substr(pos);
+  return os;
+}
 
-  result.resize(stream.tellp());
-  return result;
+template <typename String, typename... Args>
+std::ostream& operator<<(std::ostream& os, wrap<String, Args...> w) {
+  return std::apply(
+      [&](auto... args) -> std::ostream& { return shift<String>(os, args...); },
+      w.args);
+}
+
+}  // namespace format_detail
+
+template <typename String, typename... Args>
+auto format(String, Args&&... args) {
+  return format_detail::wrap<String, std::decay_t<Args>...>{
+      std::make_tuple(std::forward<Args>(args)...)};
 }
 
 #define CONSTEXPR_STRING(s)                                 \

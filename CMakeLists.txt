@@ -9,9 +9,6 @@ add_library(format INTERFACE)
 target_include_directories(format
   INTERFACE include)
 
-target_link_libraries(format
-  INTERFACE Boost::boost)
-
 target_compile_features(format
   INTERFACE cxx_std_17)
 

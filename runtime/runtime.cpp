@@ -1,12 +1,15 @@
 #include <benchmark/benchmark.h>
 
+#include <sstream>
+
 #include <boost/format.hpp>
 
 #include <format.hpp>
 
 static void BM_Format(benchmark::State& state) {
+  std::stringstream ss;
   while (state.KeepRunning()) {
-    FORMAT(
+    ss << FORMAT(
         "{0} asdfasdfasdfasdfasdfasdfasdfasd {0} "
         "asdfsadfasdfasdfasdfasdfasdfasdf"
         "{0} asdfasdfasdfasdfasdfasdfasdfasd {0} "
@@ -14,23 +17,24 @@ static void BM_Format(benchmark::State& state) {
         "{0} asdfasdfasdfasdfasdfasdfasdfasd {0} "
         "asdfsadfasdfasdfasdfasdfasdfasdf"
         "{0} asdfasdfasdfasdfasdfasdfasdfasd {0} "
-        "asdfsadfasdfasdfasdfasdfasdfasdf")
-    (1);
+        "asdfsadfasdfasdfasdfasdfasdfasdf")(1);
   }
 }
 BENCHMARK(BM_Format);
 
 static void BM_Boost(benchmark::State& state) {
+  std::stringstream ss;
   while (state.KeepRunning()) {
-    boost::str(boost::format("%1% asdfasdfasdfasdfasdfasdfasdfasd %1% "
-                             "asdfsadfasdfasdfasdfasdfasdfasdf"
-                             "%1% asdfasdfasdfasdfasdfasdfasdfasd %1% "
-                             "asdfsadfasdfasdfasdfasdfasdfasdf"
-                             "%1% asdfasdfasdfasdfasdfasdfasdfasd %1% "
-                             "asdfsadfasdfasdfasdfasdfasdfasdf"
-                             "%1% asdfasdfasdfasdfasdfasdfasdfasd %1% "
-                             "asdfsadfasdfasdfasdfasdfasdfasdf") %
-               1);
+    ss << boost::format(
+              "%1% asdfasdfasdfasdfasdfasdfasdfasd %1% "
+              "asdfsadfasdfasdfasdfasdfasdfasdf"
+              "%1% asdfasdfasdfasdfasdfasdfasdfasd %1% "
+              "asdfsadfasdfasdfasdfasdfasdfasdf"
+              "%1% asdfasdfasdfasdfasdfasdfasdfasd %1% "
+              "asdfsadfasdfasdfasdfasdfasdfasdf"
+              "%1% asdfasdfasdfasdfasdfasdfasdfasd %1% "
+              "asdfsadfasdfasdfasdfasdfasdfasdf") %
+              1;
   }
 }
 BENCHMARK(BM_Boost);

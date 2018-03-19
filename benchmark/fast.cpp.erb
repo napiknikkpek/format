@@ -1,9 +1,12 @@
+#include <sstream>
+
 #include "format.hpp"
 
 int main() {
+  std::stringstream ss;
 
 #if defined(METABENCH)
-  FORMAT("<%= env[:templ] * (n + 1) %>")(0);
+  ss << FORMAT("<%= env[:templ] * (n + 1) %>")(0);
 #endif
 
   return 0;

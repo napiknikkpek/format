@@ -1,3 +1,5 @@
+#include <sstream>
+
 #include "format.hpp"
 
 #include <boost/hana/string.hpp>
@@ -5,8 +7,10 @@
 int main() {
   using namespace boost::hana::literals;
 
+  std::stringstream ss;
+
 #if defined(METABENCH)
-  format("<%= env[:templ] * (n + 1) %>"_s, 0);
+  ss << format("<%= env[:templ] * (n + 1) %>"_s, 0);
 #endif
 
   return 0;

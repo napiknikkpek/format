@@ -10,12 +10,12 @@ Usage:
 
 using namespace boost::hana::literals;
 
-std::string str = format("string: {1}, number: {0}"_s, 1, "asdf");
+std::cout << format("string: {1}, number: {0}"_s, 1, "asdf");
 ```
 ```cpp
 #include <format.hpp>
 
-std::string str = FORMAT("string: {1}, number: {0}")(1, "asdf");
+std::cout << FORMAT("string: {1}, number: {0}")(1, "asdf");
 ```
 
 
