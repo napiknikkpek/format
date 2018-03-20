@@ -2,12 +2,12 @@
 #define _36BF5C5E_B38C_4308_AE68_1ECDCB17734B_HPP
 
 #include <array>
-#include <functional>
 #include <ostream>
 #include <sstream>
 #include <string>
 #include <string_view>
 #include <tuple>
+#include <utility>
 
 namespace format_detail {
 
@@ -73,12 +73,13 @@ struct Test {
   int no = 0;
 };
 
-template <typename String, typename... Args>
-std::ostream& shift(std::ostream& os, Args... args) {
-  constexpr auto Size = sizeof...(args);
+template <typename String, std::size_t... I, typename Tuple>
+std::ostream& shift(std::ostream& os, std::index_sequence<I...>,
+                    Tuple const& args) {
+  constexpr auto Size = sizeof...(I);
 
-  std::array<std::function<void(std::ostream&)>, Size> fields = {
-      ([&](std::ostream& o) { o << args; })...};
+  std::array<void (*)(std::ostream&, Tuple const&), Size> fields = {
+      ([](std::ostream& o, Tuple const& t) { o << std::get<I>(t); })...};
 
   constexpr std::string_view view(String{}.c_str());
 
@@ -109,7 +110,7 @@ std::ostream& shift(std::ostream& os, Args... args) {
       [&](std::size_t start, std::size_t size, int index, int&) {
         if (index < 0) index = no++;
         os << view.substr(pos, start - pos);
-        fields[index](os);
+        fields[index](os, args);
         pos = start + size;
       });
 
@@ -119,9 +120,7 @@ std::ostream& shift(std::ostream& os, Args... args) {
 
 template <typename String, typename... Args>
 std::ostream& operator<<(std::ostream& os, wrap<String, Args...> w) {
-  return std::apply(
-      [&](auto... args) -> std::ostream& { return shift<String>(os, args...); },
-      w.args);
+  return shift<String>(os, std::make_index_sequence<sizeof...(Args)>{}, w.args);
 }
 
 }  // namespace format_detail
