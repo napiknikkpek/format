@@ -7,6 +7,7 @@
 #include <string>
 #include <string_view>
 #include <tuple>
+#include <type_traits>
 #include <utility>
 
 namespace format_detail {
@@ -56,36 +57,49 @@ constexpr Result parse(std::string_view const& view, Escaped escaped,
 
 enum class Numbering { None, Manual, Automatic };
 
-template <typename String, typename... Args>
-struct wrap {
-  std::tuple<Args...> args;
-
-  std::string str() {
-    std::stringstream ss;
-    ss << *this;
-    return ss.str();
-  }
-};
-
 struct Test {
   constexpr Test() = default;
   Numbering numbering = Numbering::None;
   int no = 0;
 };
 
-template <typename String, std::size_t... I, typename Tuple>
-std::ostream& shift(std::ostream& os, std::index_sequence<I...>,
-                    Tuple const& args) {
-  constexpr auto Size = sizeof...(I);
+template <typename T>
+void Field_format(std::ostream& os, void const* t) {
+  os << *reinterpret_cast<T const*>(t);
+}
 
-  std::array<void (*)(std::ostream&, Tuple const&), Size> fields = {
-      ([](std::ostream& o, Tuple const& t) { o << std::get<I>(t); })...};
+using Field_format_func = void (*)(std::ostream& os, void const*);
 
+struct Field {
+  void const* value = nullptr;
+  Field_format_func func = nullptr;
+
+  Field() = default;
+
+  template <typename T>
+  Field(T const& t) : value(&t), func(&Field_format<T>) {}
+
+  void format(std::ostream& os) const { func(os, value); }
+};
+
+template <typename String, std::size_t Size>
+struct Wrap {
+  std::array<Field, Size> fields;
+
+  std::string str() const {
+    std::stringstream ss;
+    ss << *this;
+    return ss.str();
+  }
+};
+
+template <typename String, std::size_t Size>
+std::ostream& shift(std::ostream& os, Wrap<String, Size> const& wrap) {
   constexpr std::string_view view(String{}.c_str());
 
   constexpr auto test = format_detail::parse<Test>(
       view, [](std::size_t, Test&) {},
-      [](std::size_t start, std::size_t size, int index, Test& test) {
+      [](std::size_t /*start*/, std::size_t /*size*/, int index, Test& test) {
         auto numbering = index < 0 ? Numbering::Automatic : Numbering::Manual;
 
         if (test.numbering == Numbering::None)
@@ -95,9 +109,10 @@ std::ostream& shift(std::ostream& os, std::index_sequence<I...>,
 
         if (index < 0) index = test.no++;
 
-        if (index >= Size)
+        if (static_cast<std::size_t>(index) >= Size)
           throw "compile time error: replacement index out of range";
       });
+  (void)test;
 
   std::size_t pos = 0;
   int no = 0;
@@ -110,7 +125,7 @@ std::ostream& shift(std::ostream& os, std::index_sequence<I...>,
       [&](std::size_t start, std::size_t size, int index, int&) {
         if (index < 0) index = no++;
         os << view.substr(pos, start - pos);
-        fields[index](os, args);
+        wrap.fields[index].format(os);
         pos = start + size;
       });
 
@@ -118,17 +133,16 @@ std::ostream& shift(std::ostream& os, std::index_sequence<I...>,
   return os;
 }
 
-template <typename String, typename... Args>
-std::ostream& operator<<(std::ostream& os, wrap<String, Args...> w) {
-  return shift<String>(os, std::make_index_sequence<sizeof...(Args)>{}, w.args);
+template <typename String, std::size_t Size>
+std::ostream& operator<<(std::ostream& os, Wrap<String, Size> const& wrap) {
+  return shift(os, wrap);
 }
 
 }  // namespace format_detail
 
 template <typename String, typename... Args>
-auto format(String, Args&&... args) {
-  return format_detail::wrap<String, std::decay_t<Args>...>{
-      std::make_tuple(std::forward<Args>(args)...)};
+auto format(String, Args const&... args) {
+  return format_detail::Wrap<String, sizeof...(Args)>{args...};
 }
 
 #define CONSTEXPR_STRING(s)                                 \
